@@ -1,0 +1,7 @@
+{
+  "name": "paseos-con-true",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": { "dev": "node dev-server.js" },
+  "engines": { "node": ">=18" }
+}
