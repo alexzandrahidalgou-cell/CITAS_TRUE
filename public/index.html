@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paseos con True 🐾 | Agenda & Recordatorios Outlook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      font-family: var(--font-family);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+
+  <div id="reminderToast" class="fixed top-5 right-5 max-w-md w-[calc(100%-40px)] z-[99999] hidden" role="alert">
+    <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-2xl flex items-start gap-4 border-l-8 border-emerald-500">
+      <div class="text-3xl animate-bounce">🐾 ⏰</div>
+      <div class="flex-1">
+        <h4 id="reminderTitle" class="text-base font-bold text-emerald-400 mb-1">¡Recordatorio de paseo con True!</h4>
+        <p id="reminderMessage" class="text-sm text-slate-200">Tu turno comienza en 20 minutos. ¡Prepara la correa y su botellita de agua!</p>
+      </div>
+      <button id="closeReminderBtn" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
+    </div>
+  </div>
+
+  <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div class="w-12 h-12 bg-gradient-to-tr from-amber-100 to-orange-100 border-2 border-amber-500 rounded-full flex items-center justify-center text-2xl shadow-sm">
+            🐶
+            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+            Paseos con True
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 flex-wrap justify-center">
+        <div id="userProfileChip" class="hidden flex items-center gap-2.5 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm">
+          <div id="userInitial" class="w-8 h-8 bg-emerald-600 text-white font-bold text-xs rounded-full flex items-center justify-center">?</div>
+          <div class="flex flex-col text-left">
+            <span id="displayUserName" class="text-xs font-bold text-slate-900 leading-tight"></span>
+            <span id="displayUserPhone" class="text-[10px] text-slate-500"></span>
+          </div>
+          <button type="button" id="btnLogout" class="ml-1 text-[11px] font-bold text-red-600 hover:text-red-800 px-2 py-1 rounded-full hover:bg-red-50">Salir</button>
+        </div>
+      </div>
+    </div>
+  </header>
+<!-- Vista de Login / Registro -->
+    <section id="authView" class="hidden max-w-md w-full mx-auto px-4 py-10">
+      <div class="bg-white border-2 border-emerald-200 rounded-3xl shadow-md p-6 sm:p-7">
+        <div class="text-center mb-5">
+          <div class="text-4xl mb-2">🐶</div>
+          <h2 class="text-xl font-extrabold text-slate-900">Bienvenido a Paseos con True</h2>
+          <p class="text-xs text-slate-500 mt-1">Ingresa o crea tu cuenta para agendar tus paseos.</p>
+        </div>
+
+        <div class="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
+          <button type="button" id="authTabLogin" class="flex-1 py-2 text-sm font-bold rounded-lg bg-emerald-600 text-white shadow">Ingresar</button>
+          <button type="button" id="authTabRegister" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-600 hover:text-emerald-700">Registrarme</button>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl p-3 mb-4">
+          💡 Te recomendamos usar el <strong>mismo valor</strong> para usuario y contraseña, así no se te olvida.
+        </div>
+
+        <p id="authError" class="hidden mb-3 text-xs text-red-700 font-bold bg-red-50 border border-red-200 p-2 rounded-lg text-center"></p>
+
+        <form id="loginForm" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Usuario *</label>
+            <input type="text" id="loginUser" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="username">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Contraseña *</label>
+            <input type="password" id="loginPass" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl shadow-md transition">Ingresar</button>
+        </form>
+
+        <form id="registerForm" class="space-y-3 hidden">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Usuario *</label>
+            <input type="text" id="regUser" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="username">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Contraseña *</label>
+            <input type="password" id="regPass" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="new-password">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono / WhatsApp *</label>
+            <input type="tel" id="regPhone" placeholder="Ej. 312 456 7890" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Área / Departamento *</label>
+            <input type="text" id="regDept" placeholder="Ej. Operaciones" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required>
+          </div>
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl shadow-md transition">Crear cuenta y entrar</button>
+        </form>
+      </div>
+    </section>
+  <main id="appMain" class="hidden max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex-1">
+
+    <section class="bg-gradient-to-br from-white to-emerald-50 border border-emerald-200 rounded-2xl p-5 sm:p-7 shadow-sm mb-7 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 flex flex-col justify-center">
+        <div class="inline-flex items-center gap-2 bg-white border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold text-emerald-800 mb-3 w-max">
+          <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+          <span id="todayStatusText">Cargando turnos de hoy...</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2">¿Quién pasea hoy a True? 🐕</h2>
+        <p class="text-sm sm:text-base text-slate-600 mb-5 leading-relaxed">
+          Regálate un pausa en tu día y sal a pasear con True. Elige el día y la hora que mejor te acomoden para conectar y despejarte.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex items-start gap-3 bg-white/80 border border-slate-200 p-3 rounded-xl">
+            <span class="text-2xl">☀️</span>
+            <div>
+              <strong class="text-sm block text-slate-900">Turno Tarde: 1:00 PM – 3:00 PM</strong>
+              <small class="text-xs text-slate-500">Paseo largo por parque y descanso</small>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 bg-white/80 border border-slate-200 p-3 rounded-xl">
+            <span class="text-2xl">🌙</span>
+            <div>
+              <strong class="text-sm block text-slate-900">Turno Atardecer: 6:00 PM – 7:00 PM</strong>
+              <small class="text-xs text-slate-500">Paseo de cierre antes de salir</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-orange-200 rounded-xl p-5 shadow-sm flex flex-col justify-center">
+        <div class="flex justify-between items-center border-b border-dashed border-orange-200 pb-3 mb-3 text-xs font-extrabold text-orange-800 tracking-wider">
+          <span>FICHA DE TRUE</span>
+          <span class="bg-orange-100 text-orange-900 px-2 py-0.5 rounded-full">Perrita Feliz 🦴</span>
+        </div>
+        <div class="space-y-3 text-xs sm:text-sm text-slate-600">
+          <div class="flex justify-between"><span>Turnos / día:</span> <strong class="text-slate-900">2 paseos exclusivos</strong></div>
+          <div class="flex justify-between items-center"><span>Correa y bolsitas 💩:</span> <strong class="text-slate-900">Puerta de emergencia</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="flex items-center gap-2 border-b-2 border-slate-200 mb-6 overflow-x-auto pb-1">
+      <button class="nav-tab active px-4 py-2.5 text-sm font-semibold text-emerald-700 border-b-3 border-emerald-600 bg-white rounded-t-xl shadow-sm transition" data-tab="tab-agenda">
+        📅 Agendar Turnos (Lunes a Viernes)
+      </button>
+      <button class="nav-tab px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-emerald-700 rounded-t-xl transition" data-tab="tab-weekends-top">
+        🏡 Fines de Semana con True
+      </button>
+      <button class="nav-tab px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-emerald-700 rounded-t-xl transition" data-tab="tab-my-walks">
+        🎒 Mis Paseos <span id="myWalksCount" class="bg-emerald-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+      <button class="nav-tab px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-emerald-700 rounded-t-xl transition" data-tab="tab-week-calendar">
+        🗓️ Bitácora Semanal
+      </button>
+    </nav>
+
+    <section id="tab-agenda" class="tab-content active space-y-6">
+      <div class="bg-white border-2 border-emerald-200 rounded-2xl p-5 sm:p-6 shadow-md">
+        <div class="flex items-center gap-4 border-b border-slate-200 pb-4 mb-5">
+          <div class="w-12 h-12 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-center text-2xl">
+            📅
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Espacio de Agendamiento Rápido (Lunes a Viernes)</h3>
+            <p class="text-xs sm:text-sm text-slate-600">Selecciona un día hábil (lunes a viernes), elige tu turno y añade el recordatorio a tu Outlook.</p>
+          </div>
+        </div>
+
+        <form id="directBookingForm" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+              <label class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <span class="w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs">1</span>
+                <span>Selecciona la Fecha (Lunes a Viernes):</span>
+              </label>
+              <input type="date" id="calendarDateInput" class="w-full p-3 text-sm font-bold border-2 border-slate-200 rounded-xl bg-white text-slate-900 focus:border-emerald-600 outline-none" required>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+              <label class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <span class="w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs">2</span>
+                <span>Selecciona el Turno Diario (Bloqueo automático si está ocupado):</span>
+              </label>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="bg-white border-2 border-slate-200 rounded-xl p-3 flex flex-col cursor-pointer hover:border-emerald-400 transition has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50" id="cardOptionShift1">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-slate-900">☀️ Tarde (1-3 PM)</span>
+                    <input type="radio" name="directShiftChoice" value="shift-tarde" checked class="accent-emerald-600">
+                  </div>
+                  <span id="directShift1Badge" class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full w-max">🟢 Libre</span>
+                  <span id="directShift1Assignee" class="text-[11px] text-slate-500 mt-2">Turno diario</span>
+                </label>
+
+                <label class="bg-white border-2 border-slate-200 rounded-xl p-3 flex flex-col cursor-pointer hover:border-emerald-400 transition has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50" id="cardOptionShift2">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-slate-900">🌙 Atardecer (6-7 PM)</span>
+                    <input type="radio" name="directShiftChoice" value="shift-atardecer" class="accent-emerald-600">
+                  </div>
+                  <span id="directShift2Badge" class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full w-max">🟢 Libre</span>
+                  <span id="directShift2Assignee" class="text-[11px] text-slate-500 mt-2">Turno diario</span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="flex flex-col items-center pt-2">
+            <button type="submit" id="btnConfirmDirectBooking" class="w-full max-w-md py-3.5 bg-emerald-600 text-white font-extrabold rounded-xl shadow-lg hover:bg-emerald-700 transition">
+              🐾 Confirmar y Agendar este Turno
+            </button>
+            <p id="directWarningTaken" class="mt-2 text-xs text-red-600 font-bold bg-red-50 border border-red-200 p-2 rounded-lg hidden text-center w-full">
+              ⚠️ Este turno ya está reservado por otro usuario y se encuentra bloqueado.
+            </p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="tab-weekends-top" class="tab-content hidden space-y-6">
+      <div class="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+          <div>
+            <span class="text-xs font-extrabold bg-amber-100 text-amber-900 px-3 py-1 rounded-full">Fines de Semana con True</span>
+            <h3 class="text-lg font-extrabold text-amber-950 mt-1">🏡 Fines de Semana en Casa</h3>
+            <p class="text-xs text-slate-600 mt-1">Llévate a True a tu casa desde el Viernes a las 6:00 PM hasta el Lunes a las 8:30 AM. Solo 1 colaborador por fin de semana.</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="weekendsGrid"></div>
+      </div>
+    </section>
+
+    <section id="tab-my-walks" class="tab-content hidden space-y-5">
+      <div class="border-b border-slate-200 pb-3">
+        <h3 class="text-lg font-extrabold text-slate-900">Mis Compromisos de Paseo & Hospedaje 🐾</h3>
+        <p class="text-xs text-slate-500">Gestiona tus turnos y añade tus recordatorios a Outlook.</p>
+      </div>
+      <div id="myWalksList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <section id="tab-week-calendar" class="tab-content hidden space-y-4">
+      <div class="border-b border-slate-200 pb-3">
+        <h3 class="text-lg font-extrabold text-slate-900">Calendario Semanal de Paseadores 👥</h3>
+        <p class="text-xs text-slate-500">Vista general de los próximos 5 días hábiles en la oficina.</p>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-xs uppercase text-slate-600 font-bold border-b border-slate-200">
+            <tr>
+              <th class="p-3.5">Fecha</th>
+              <th class="p-3.5">Día</th>
+              <th class="p-3.5">Turno Tarde (1-3 PM)</th>
+              <th class="p-3.5">Turno Atardecer (6-7 PM)</th>
+            </tr>
+          </thead>
+          <tbody id="weekTableBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="successModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 hidden" role="dialog">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎉</span>
+          <div>
+            <h3 id="successModalTitle" class="text-base font-extrabold text-slate-900">¡Turno Agendado con Éxito!</h3>
+            <p class="text-xs text-slate-500">Reserva confirmada en el sistema de True</p>
+          </div>
+        </div>
+        <button id="btnCloseSuccessModalX" class="text-slate-400 hover:text-slate-900 text-xl font-bold p-1">&times;</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 text-center">
+        <div class="text-4xl animate-bounce">🐾 🐶 🦴</div>
+        <p id="successMessageDetails" class="text-sm text-slate-600 leading-relaxed">True está muy contenta. Tu turno ha sido registrado correctamente y bloqueado para que nadie más lo reserve.</p>
+        
+        <button type="button" id="btnReturnSuccessTop" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+          ⬅️ Volver a la Agenda Principal
+        </button>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-3">
+          <p class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">📌 Recordatorio en tu Calendario:</p>
+          
+          <a id="btnCalendarPrimary" target="_blank" rel="noopener noreferrer" class="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white p-3.5 rounded-xl shadow-md flex items-center justify-center gap-3 transition text-center font-extrabold text-sm">
+            <span>📅</span>
+            <span>Agregar a Calendar para recordatorio</span>
+          </a>
+        </div>
+
+        <button type="button" id="btnCloseSuccessModal" class="w-full py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold text-sm rounded-xl transition">
+          ⬅️ Volver a la Agenda de Turnos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="weekendBookingModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 hidden" role="dialog">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="text-base font-extrabold text-slate-900">🏡 Hospedaje de Fin de Semana con True</h3>
+        <button id="btnCloseWeekendModal" class="text-slate-400 hover:text-slate-900 text-xl font-bold p-1">&times;</button>
+      </div>
+      <form id="weekendBookingForm" class="p-6 overflow-y-auto space-y-4">
+        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-900 space-y-1">
+          <div>📅 Fechas: <strong id="modalWeekendDates">--</strong></div>
+          <div>⏰ Horario: Viernes 6 PM a Lunes 8:30 AM</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Dirección de tu Hogar *</label>
+          <input type="text" id="inputWeekendAddress" placeholder="Ej. Calle 100 # 15-20" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-amber-600" required>
+        </div>
+        <div class="flex items-start gap-2 text-xs text-slate-600 pt-1">
+          <input type="checkbox" id="checkWeekendCommitment" class="accent-amber-600 mt-0.5" required>
+          <span>Me comprometo a cuidar a True responsablemente y regresarla el lunes a las 8:30 AM.</span>
+        </div>
+        <div class="pt-2 flex gap-3">
+          <button type="button" id="btnCancelWeekendModal" class="flex-1 py-3 bg-slate-100 font-bold text-xs rounded-xl">Cancelar</button>
+          <button type="submit" class="flex-1 py-3 bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md">Confirmar Hospedaje</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 py-4 text-center mt-auto">
+    <p class="text-xs text-slate-500">🐾 <strong>Paseos con True</strong> &bull; Fomentando el bienestar animal y el compañerismo en nuestro equipo.</p>
+  </footer>
+
+  <script>
+    const SHIFTS_CONFIG = [
+      {
+        id: 'shift-tarde', title: 'Turno Tarde', timeDisplay: '1:00 PM – 3:00 PM',
+        startHour: 13, startMinute: 0, endHour: 15, endMinute: 0, duration: '2 Horas', icon: '☀️'
+      },
+      {
+        id: 'shift-atardecer', title: 'Turno Atardecer', timeDisplay: '6:00 PM – 7:00 PM',
+        startHour: 18, startMinute: 0, endHour: 19, endMinute: 0, duration: '1 Hora', icon: '🌙'
+      }
+    ];
+
+    const STORAGE_KEYS = { TOKEN: 'true_dog_token_v11', NOTIFIED: 'true_dog_notified_v11' };
+
+    const state = {
+      selectedDateString: formatDateToYYYYMMDD(new Date()),
+      currentUser: null,   // { username, phone, dept }
+      bookings: {},        // key -> booking enriquecido
+      weekends: {},
+      pendingWeekendId: null
+    };
+
+    // ---------- API ----------
+    async function api(path, { method = 'GET', body } = {}) {
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const res = await fetch(path, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: body ? JSON.stringify(body) : undefined
+      });
+      let data = {};
+      try { data = await res.json(); } catch {}
+      if (!res.ok) {
+        const err = new Error(data.error || 'Error de conexión');
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      initAuthForms();
+      initDateControls();
+      initDirectBookingComposer();
+      initTabNavigation();
+      initReminderChecker();
+      initModals();
+      initWeekendForm();
+
+      if (localStorage.getItem(STORAGE_KEYS.TOKEN)) {
+        try {
+          const { user } = await api('/api/auth?action=me');
+          await enterApp(user);
+          return;
+        } catch { localStorage.removeItem(STORAGE_KEYS.TOKEN); }
+      }
+      showAuth();
+    });
+
+    // ---------- Utilidades ----------
+    function formatDateToYYYYMMDD(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function parseYYYYMMDD(s) {
+      const [y, m, d] = s.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    function formatDisplayDate(s) {
+      return parseYYYYMMDD(s).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).replace(/^./, str => str.toUpperCase());
+    }
+    function isWeekend(d) { const day = d.getDay(); return day === 0 || day === 6; }
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    // ---------- Autenticación ----------
+    function showAuth() {
+      document.getElementById('authView').classList.remove('hidden');
+      document.getElementById('appMain').classList.add('hidden');
+      document.getElementById('userProfileChip').classList.add('hidden');
+    }
+
+    async function enterApp(user) {
+      state.currentUser = user;
+      document.getElementById('authView').classList.add('hidden');
+      document.getElementById('appMain').classList.remove('hidden');
+      document.getElementById('userProfileChip').classList.remove('hidden');
+      updateUserHeaderChip();
+      await refreshData();
+      if (!window.__pollStarted) {
+        window.__pollStarted = true;
+        setInterval(() => { if (state.currentUser) refreshData(); }, 20000);
+      }
+    }
+
+    function logout() {
+      api('/api/auth?action=logout', { method: 'POST' }).catch(() => {});
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      state.currentUser = null; state.bookings = {}; state.weekends = {};
+      showAuth();
+    }
+
+    function initAuthForms() {
+      const tabLogin = document.getElementById('authTabLogin');
+      const tabReg = document.getElementById('authTabRegister');
+      const formLogin = document.getElementById('loginForm');
+      const formReg = document.getElementById('registerForm');
+      const active = 'flex-1 py-2 text-sm font-bold rounded-lg bg-emerald-600 text-white shadow';
+      const idle = 'flex-1 py-2 text-sm font-bold rounded-lg text-slate-600 hover:text-emerald-700';
+
+      const setMode = reg => {
+        tabLogin.className = reg ? idle : active;
+        tabReg.className = reg ? active : idle;
+        formLogin.classList.toggle('hidden', reg);
+        formReg.classList.toggle('hidden', !reg);
+        document.getElementById('authError').classList.add('hidden');
+      };
+      tabLogin.onclick = () => setMode(false);
+      tabReg.onclick = () => setMode(true);
+
+      const fail = e => {
+        const box = document.getElementById('authError');
+        box.textContent = '⚠️ ' + e.message; box.classList.remove('hidden');
+      };
+      const submit = async (path, body) => {
+        try {
+          const { token, user } = await api(path, { method: 'POST', body });
+          localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+          await enterApp(user);
+        } catch (e) { fail(e); }
+      };
+
+      formLogin.addEventListener('submit', e => {
+        e.preventDefault();
+        submit('/api/auth?action=login', {
+          username: document.getElementById('loginUser').value,
+          password: document.getElementById('loginPass').value
+        });
+      });
+      formReg.addEventListener('submit', e => {
+        e.preventDefault();
+        submit('/api/auth?action=register', {
+          username: document.getElementById('regUser').value,
+          password: document.getElementById('regPass').value,
+          phone: document.getElementById('regPhone').value,
+          dept: document.getElementById('regDept').value
+        });
+      });
+      document.getElementById('btnLogout').onclick = logout;
+    }
+
+    function updateUserHeaderChip() {
+      const u = state.currentUser;
+      if (!u) return;
+      document.getElementById('userInitial').textContent = u.username.slice(0, 2).toUpperCase();
+      document.getElementById('displayUserName').textContent = u.username;
+      document.getElementById('displayUserPhone').textContent = `📱 ${u.phone} · ${u.dept}`;
+    }
+
+    // ---------- Datos compartidos ----------
+    async function refreshData() {
+      try {
+        const data = await api('/api/data');
+        state.bookings = {};
+        Object.values(data.bookings).forEach(b => {
+          const s = SHIFTS_CONFIG.find(x => x.id === b.shiftId);
+          if (!s) return;
+          state.bookings[b.key] = {
+            type: 'shift', key: b.key, dateStr: b.dateStr, shiftId: b.shiftId,
+            title: `Paseo con True (${s.title})`, shiftTitle: s.title, shiftTimeDisplay: s.timeDisplay,
+            startHour: s.startHour, startMinute: s.startMinute, endHour: s.endHour, endMinute: s.endMinute,
+            mine: b.mine, user: { name: b.username }
+          };
+        });
+        state.weekends = {};
+        Object.values(data.weekends).forEach(w => {
+          const label = weekendLabel(w.fridayDateStr, w.mondayDateStr);
+          state.weekends[w.id] = {
+            type: 'weekend', id: w.id, title: `🏡 Fin de Semana con True (${label})`,
+            datesRangeDisplay: label, fullScheduleText: 'Viernes 6 PM - Lunes 8:30 AM',
+            fridayDateStr: w.fridayDateStr, mondayDateStr: w.mondayDateStr,
+            mine: w.mine, address: w.address, user: { name: w.username }
+          };
+        });
+        renderAllViews();
+      } catch (e) {
+        if (e.status === 401) { logout(); }
+      }
+    }
+
+    function weekendLabel(friStr, monStr) {
+      const f = parseYYYYMMDD(friStr), m = parseYYYYMMDD(monStr);
+      const mon = d => d.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+      return `${f.getDate()} ${mon(f)} – ${m.getDate()} ${mon(m)}`;
+    }
+
+    // ---------- Agenda Lunes a Viernes ----------
+    function initDateControls() {
+      const input = document.getElementById('calendarDateInput');
+      let initialDate = new Date();
+      while (isWeekend(initialDate)) initialDate.setDate(initialDate.getDate() + 1);
+
+      input.min = formatDateToYYYYMMDD(new Date());
+      state.selectedDateString = formatDateToYYYYMMDD(initialDate);
+      input.value = state.selectedDateString;
+
+      input.addEventListener('change', e => {
+        if (!e.target.value) return;
+        if (isWeekend(parseYYYYMMDD(e.target.value))) {
+          alert('⚠️ Los fines de semana no tienen turnos de oficina. Utiliza la pestaña "Fines de Semana con True".');
+          input.value = state.selectedDateString;
+          return;
+        }
+        state.selectedDateString = e.target.value;
+        updateDirectComposerStatus();
+      });
+    }
+
+    function initDirectBookingComposer() {
+      const form = document.getElementById('directBookingForm');
+      document.querySelectorAll('input[name="directShiftChoice"]').forEach(r => r.addEventListener('change', updateDirectComposerStatus));
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const date = document.getElementById('calendarDateInput').value;
+        const choice = document.querySelector('input[name="directShiftChoice"]:checked').value;
+        if (!date) return alert('Selecciona una fecha.');
+        if (isWeekend(parseYYYYMMDD(date))) return alert('Los fines de semana se agendan en la pestaña "Fines de Semana con True".');
+
+        try {
+          await api('/api/book?type=shift', { method: 'POST', body: { date, shiftId: choice } });
+        } catch (err) {
+          await refreshData();
+          return alert('⚠️ ' + err.message);
+        }
+        await refreshData();
+        showBookingSuccessModal(state.bookings[`${date}_${choice}`]);
+      });
+    }
+
+    function setShiftCard(n, booking) {
+      const badge = document.getElementById(`directShift${n}Badge`);
+      const note = document.getElementById(`directShift${n}Assignee`);
+      const radio = document.querySelectorAll('input[name="directShiftChoice"]')[n - 1];
+      if (booking) {
+        badge.textContent = '🔴 Ocupado y Bloqueado';
+        badge.className = 'text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded-full w-max';
+        note.textContent = booking.mine ? 'Reservado por ti' : `Por: ${booking.user.name}`;
+        radio.disabled = true;
+      } else {
+        badge.textContent = '🟢 Libre';
+        badge.className = 'text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full w-max';
+        note.textContent = 'Turno diario';
+        radio.disabled = false;
+      }
+      radio.closest('label').style.opacity = booking ? '0.6' : '1';
+      radio.closest('label').style.cursor = booking ? 'not-allowed' : 'pointer';
+    }
+
+    function updateDirectComposerStatus() {
+      const date = state.selectedDateString;
+      const b1 = state.bookings[`${date}_shift-tarde`];
+      const b2 = state.bookings[`${date}_shift-atardecer`];
+      setShiftCard(1, b1);
+      setShiftCard(2, b2);
+
+      const radios = document.querySelectorAll('input[name="directShiftChoice"]');
+      // Si el turno elegido quedó ocupado, saltar al libre (si existe)
+      if (radios[0].checked && b1 && !b2) radios[1].checked = true;
+      else if (radios[1].checked && b2 && !b1) radios[0].checked = true;
+
+      const selected = document.querySelector('input[name="directShiftChoice"]:checked').value;
+      const isTaken = (selected === 'shift-tarde' && b1) || (selected === 'shift-atardecer' && b2);
+      const btn = document.getElementById('btnConfirmDirectBooking');
+      document.getElementById('directWarningTaken').classList.toggle('hidden', !isTaken);
+      btn.disabled = !!isTaken;
+      btn.style.opacity = isTaken ? '0.5' : '1';
+    }
+
+    // ---------- Fines de semana ----------
+    function renderWeekendsGrid() {
+      const container = document.getElementById('weekendsGrid');
+      container.innerHTML = '';
+      getUpcomingWeekends().forEach(w => {
+        const booking = state.weekends[w.id];
+        const isBooked = !!booking;
+        const isMine = isBooked && booking.mine;
+
+        const card = document.createElement('div');
+        card.className = `border rounded-xl p-4 flex flex-col justify-between transition bg-white shadow-sm ${isMine ? 'border-amber-400 bg-amber-50/50' : 'border-amber-200'}`;
+
+        const status = isMine ? '<span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded-full">⭐ Asignado a ti</span>' :
+                     isBooked ? '<span class="px-2.5 py-0.5 bg-red-100 text-red-800 text-[10px] font-bold rounded-full">🔴 Bloqueado</span>' :
+                     '<span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">🟢 Disponible</span>';
+
+        let body;
+        if (!isBooked) {
+          body = `<button onclick="startWeekendModal('${w.id}')" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg transition">🏡 Postularme</button>`;
+        } else if (isMine) {
+          body = `
+            <div class="text-[11px] text-slate-700 mb-2">Asignado a ti (${esc(booking.user.name)})</div>
+            <div class="flex gap-1.5">
+              <button onclick="downloadWeekendIcs('${w.id}')" class="flex-1 py-1.5 bg-sky-600 text-white font-bold text-[11px] rounded-lg">📧 Outlook</button>
+              <button onclick="cancelWeekend('${w.id}')" class="py-1.5 px-2 bg-red-100 text-red-700 font-bold text-[11px] rounded-lg">Cancelar</button>
+            </div>`;
+        } else {
+          body = `<button disabled class="w-full py-2 bg-slate-100 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed">🔒 ${esc(booking.user.name)} (Bloqueado)</button>`;
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-extrabold text-amber-900">${w.range}</span>
+              ${status}
+            </div>
+            <p class="text-[11px] text-slate-600 mb-3">${w.schedule}</p>
+          </div>
+          <div>${body}</div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function getUpcomingWeekends() {
+      const res = [];
+      const today = new Date();
+      let day = (5 - today.getDay() + 7) % 7;
+      if (day === 0 && today.getHours() >= 19) day = 7;
+      const fri = new Date(today); fri.setDate(today.getDate() + day);
+
+      for (let i = 0; i < 4; i++) {
+        const f = new Date(fri); f.setDate(fri.getDate() + (i * 7));
+        const m = new Date(f); m.setDate(f.getDate() + 3);
+        res.push({
+          id: `weekend_${formatDateToYYYYMMDD(f)}`,
+          range: weekendLabel(formatDateToYYYYMMDD(f), formatDateToYYYYMMDD(m)),
+          schedule: 'Viernes 6 PM - Lunes 8:30 AM',
+          friStr: formatDateToYYYYMMDD(f), monStr: formatDateToYYYYMMDD(m)
+        });
+      }
+      return res;
+    }
+
+    window.startWeekendModal = function(id) {
+      state.pendingWeekendId = id;
+      const w = getUpcomingWeekends().find(x => x.id === id);
+      document.getElementById('modalWeekendDates').textContent = `${w.range} (${w.schedule})`;
+      document.getElementById('inputWeekendAddress').value = '';
+      document.getElementById('checkWeekendCommitment').checked = false;
+      document.getElementById('weekendBookingModal').classList.remove('hidden');
+    };
+
+    function initWeekendForm() {
+      const modal = document.getElementById('weekendBookingModal');
+      document.getElementById('btnCloseWeekendModal').onclick = () => modal.classList.add('hidden');
+      document.getElementById('btnCancelWeekendModal').onclick = () => modal.classList.add('hidden');
+
+      document.getElementById('weekendBookingForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const address = document.getElementById('inputWeekendAddress').value.trim();
+        if (!address) return alert('Completa la dirección.');
+        const id = state.pendingWeekendId;
+        try {
+          await api('/api/book?type=weekend', { method: 'POST', body: { id, address } });
+        } catch (err) {
+          modal.classList.add('hidden');
+          await refreshData();
+          return alert('⚠️ ' + err.message);
+        }
+        modal.classList.add('hidden');
+        await refreshData();
+        showBookingSuccessModal(state.weekends[id]);
+      });
+    }
+
+    window.cancelWeekend = async function(id) {
+      if (!confirm('¿Deseas cancelar tu hospedaje de fin de semana?')) return;
+      try { await api(`/api/book?type=weekend&id=${encodeURIComponent(id)}`, { method: 'DELETE' }); }
+      catch (e) { alert('⚠️ ' + e.message); }
+      await refreshData();
+    };
+
+    // ---------- Mis paseos ----------
+    function renderMyWalks() {
+      const container = document.getElementById('myWalksList');
+      container.innerHTML = '';
+      const shifts = Object.values(state.bookings).filter(b => b.mine).sort((a, b) => a.key.localeCompare(b.key));
+      const weekends = Object.values(state.weekends).filter(w => w.mine);
+      document.getElementById('myWalksCount').textContent = shifts.length + weekends.length;
+
+      if (!shifts.length && !weekends.length) {
+        container.innerHTML = `<div class="col-span-2 text-center p-8 bg-white border border-slate-200 rounded-2xl"><p class="text-sm text-slate-500">No tienes reservas activas.</p></div>`;
+        return;
+      }
+
+      shifts.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-emerald-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between gap-3';
+        card.innerHTML = `
+          <div>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">Turno Activo con Alarma</span>
+            <h4 class="text-base font-extrabold text-slate-900 mt-1">${b.shiftTitle} (${b.shiftTimeDisplay})</h4>
+            <p class="text-xs text-slate-600">📅 ${formatDisplayDate(b.dateStr)}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="downloadIcsFile('${b.key}')" class="flex-1 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl">📧 Outlook (.ics)</button>
+            <button onclick="handleCancelShift('${b.key}')" class="py-2 px-3 bg-red-100 text-red-700 font-bold text-xs rounded-xl">🗑️ Eliminar</button>
+          </div>`;
+        container.appendChild(card);
+      });
+
+      weekends.forEach(w => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-amber-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between gap-3';
+        card.innerHTML = `
+          <div>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 bg-amber-100 text-amber-900 rounded-full">Hospedaje de Fin de Semana</span>
+            <h4 class="text-base font-extrabold text-slate-900 mt-1">${w.title}</h4>
+            <p class="text-xs text-slate-600">${w.fullScheduleText}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="downloadWeekendIcs('${w.id}')" class="flex-1 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl">📧 Outlook (.ics)</button>
+            <button onclick="cancelWeekend('${w.id}')" class="py-2 px-3 bg-red-100 text-red-700 font-bold text-xs rounded-xl">🗑️ Eliminar</button>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    window.handleCancelShift = async function(key) {
+      const b = state.bookings[key];
+      if (!b) return;
+      if (!confirm(`¿Deseas eliminar tu ${b.shiftTitle} del ${formatDisplayDate(b.dateStr)}? El turno quedará libre.`)) return;
+      try {
+        await api(`/api/book?type=shift&key=${encodeURIComponent(key)}`, { method: 'DELETE' });
+        alert('✅ Turno eliminado con éxito.');
+      } catch (e) { alert('⚠️ ' + e.message); }
+      await refreshData();
+    };
+
+    // ---------- Bitácora ----------
+    function renderWeekTable() {
+      const tbody = document.getElementById('weekTableBody');
+      tbody.innerHTML = '';
+      const today = new Date();
+      let count = 0, i = 0;
+      const cell = b => b
+        ? `<span class="px-2 py-1 ${b.mine ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'} rounded-lg text-xs font-bold">🔒 ${b.mine ? 'Tú' : 'Bloqueado'}: ${esc(b.user.name)}</span>`
+        : '<span class="text-emerald-600 text-xs font-bold">🟢 Libre</span>';
+      while (count < 5 && i < 15) {
+        const d = new Date(today); d.setDate(today.getDate() + i);
+        i++;
+        if (isWeekend(d)) continue;
+        const dateStr = formatDateToYYYYMMDD(d);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="p-3.5 font-bold">${dateStr}</td>
+          <td class="p-3.5">${count === 0 ? 'Hoy ⭐' : d.toLocaleDateString('es-ES', { weekday: 'short' })}</td>
+          <td class="p-3.5">${cell(state.bookings[`${dateStr}_shift-tarde`])}</td>
+          <td class="p-3.5">${cell(state.bookings[`${dateStr}_shift-atardecer`])}</td>`;
+        tbody.appendChild(tr);
+        count++;
+      }
+    }
+
+    function initTabNavigation() {
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.onclick = () => {
+          document.querySelectorAll('.nav-tab').forEach(t => t.className = 'nav-tab px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-emerald-700 rounded-t-xl transition');
+          tab.className = 'nav-tab active px-4 py-2.5 text-sm font-semibold text-emerald-700 border-b-3 border-emerald-600 bg-white rounded-t-xl shadow-sm transition';
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+          document.getElementById(tab.dataset.tab).classList.remove('hidden');
+        };
+      });
+    }
+
+    function renderAllViews() {
+      renderWeekendsGrid();
+      renderMyWalks();
+      renderWeekTable();
+      updateDirectComposerStatus();
+
+      const todayStr = formatDateToYYYYMMDD(new Date());
+      const b1 = state.bookings[`${todayStr}_shift-tarde`];
+      const b2 = state.bookings[`${todayStr}_shift-atardecer`];
+      const statusText = document.getElementById('todayStatusText');
+      if (b1 && b2) statusText.textContent = '¡Hoy ambos turnos están cubiertos y bloqueados!';
+      else if (b1 || b2) statusText.textContent = 'Falta 1 paseador para hoy';
+      else statusText.textContent = 'Hoy aún no hay paseadores inscritos';
+    }
+
+    // ---------- Calendar / Outlook (sin cambios de comportamiento) ----------
+    function buildIcsData(booking) {
+      let start, end, title, details;
+      if (booking.type === 'weekend') {
+        start = parseYYYYMMDD(booking.fridayDateStr); start.setHours(18, 0, 0, 0);
+        end = parseYYYYMMDD(booking.mondayDateStr); end.setHours(8, 30, 0, 0);
+        title = booking.title;
+        details = `Hospedaje de fin de semana con True a cargo de ${booking.user.name}. Kit completo en puerta de emergencia.`;
+      } else {
+        const d = parseYYYYMMDD(booking.dateStr);
+        start = new Date(d); start.setHours(booking.startHour, booking.startMinute, 0, 0);
+        end = new Date(d); end.setHours(booking.endHour, booking.endMinute, 0, 0);
+        title = `🐾 Paseo con True (${booking.shiftTitle})`;
+        details = `Turno asignado a ${booking.user.name}. Alarma programada a 20 minutos antes.`;
+      }
+      return {
+        outlookOffice: `https://outlook.office.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${encodeURIComponent(start.toISOString())}&enddt=${encodeURIComponent(end.toISOString())}&subject=${encodeURIComponent(title)}&body=${encodeURIComponent(details)}&location=${encodeURIComponent('Puerta de emergencia')}`
+      };
+    }
+
+    function showBookingSuccessModal(booking) {
+      if (!booking) return;
+      const data = buildIcsData(booking);
+      document.getElementById('successModalTitle').textContent = booking.type === 'weekend' ? '¡Fin de Semana Asignado y Bloqueado!' : '¡Turno Agendado y Bloqueado!';
+      document.getElementById('successMessageDetails').innerHTML = `True está muy contenta. Tu reserva ha quedado guardada con alarma previa de 20 minutos y el turno ha quedado bloqueado para otros usuarios.`;
+      document.getElementById('btnCalendarPrimary').href = data.outlookOffice;
+      document.getElementById('successModal').classList.remove('hidden');
+    }
+
+    window.downloadIcsFile = function(keyOrId) {
+      const booking = state.bookings[keyOrId] || state.weekends[keyOrId];
+      if (!booking) return;
+      window.open(buildIcsData(booking).outlookOffice, '_blank');
+    };
+    window.downloadWeekendIcs = function(id) { downloadIcsFile(id); };
+
+    function initModals() {
+      const closeSuccess = () => document.getElementById('successModal').classList.add('hidden');
+      document.getElementById('btnCloseSuccessModal').onclick = closeSuccess;
+      document.getElementById('btnCloseSuccessModalX').onclick = closeSuccess;
+      document.getElementById('btnReturnSuccessTop').onclick = closeSuccess;
+      document.getElementById('closeReminderBtn').onclick = () => document.getElementById('reminderToast').classList.add('hidden');
+    }
+
+    function triggerReminderAlarm(title, msg) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.5);
+      } catch (e) {}
+      document.getElementById('reminderTitle').textContent = title;
+      document.getElementById('reminderMessage').textContent = msg;
+      document.getElementById('reminderToast').classList.remove('hidden');
+      if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: msg });
+    }
+
+    function initReminderChecker() { setInterval(checkShifts20MinBefore, 15000); }
+
+    function checkShifts20MinBefore() {
+      if (!state.currentUser) return;
+      const now = new Date();
+      const todayStr = formatDateToYYYYMMDD(now);
+      const notified = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.NOTIFIED) || '{}');
+      SHIFTS_CONFIG.forEach(shift => {
+        const b = state.bookings[`${todayStr}_${shift.id}`];
+        if (!b || !b.mine) return;
+        const start = new Date(now); start.setHours(shift.startHour, shift.startMinute, 0, 0);
+        const diffMinutes = Math.round((start - now) / 60000);
+        const notifKey = `${todayStr}_${shift.id}`;
+        if (diffMinutes > 0 && diffMinutes <= 20 && !notified[notifKey]) {
+          notified[notifKey] = true;
+          sessionStorage.setItem(STORAGE_KEYS.NOTIFIED, JSON.stringify(notified));
+          triggerReminderAlarm(`🐾 ¡Tu turno con True inicia en ${diffMinutes} min!`, `Hola ${b.user.name}, prepárate para el ${shift.title}.`);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
