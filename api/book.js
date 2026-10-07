@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
       if (!dt || !c.SHIFTS.includes(body.shiftId)) return res.status(400).json({ error: 'Datos inválidos' });
       const dow = dt.getUTCDay();
       if (dow === 0 || dow === 6) return res.status(400).json({ error: 'Solo lunes a viernes.' });
-      const key = ${body.date}_${body.shiftId};
+      const key = `${body.date}_${body.shiftId}`;
       const rec = { key, dateStr: body.date, shiftId: body.shiftId, username: me.username, userKey, phone: me.phone, dept: me.dept, createdAt: Date.now() };
       const ok = await c.cmd('HSETNX', 'bookings', key, JSON.stringify(rec));
       if (!ok) return res.status(409).json({ error: 'Este turno ya está reservado por otro usuario y se encuentra bloqueado.' });
