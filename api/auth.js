@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
 
     if (action === 'logout') {
       const h = req.headers['authorization'] || '';
-      if (h.startsWith('Bearer ')) await c.cmd('DEL', session:${h.slice(7)});
+      if (h.startsWith('Bearer ')) await c.cmd('DEL', `session:${h.slice(7)}`);
       return res.status(200).json({ ok: true });
     }
 
