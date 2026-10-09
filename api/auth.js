@@ -23,13 +23,13 @@ module.exports = async (req, res) => {
       const phone = String(body.phone || '').trim();
       const dept = String(body.dept || '').trim();
       if (!username || !password || !phone || !dept) {
-        return res.status(400).json({ error: 'Completa usuario, contraseña, teléfono y área.' });
+        return res.status(400).json({ error: 'Completa tu nombre completo, contraseña, teléfono y área.' });
       }
       const key = c.normUser(username);
       const salt = c.crypto.randomBytes(16).toString('hex');
       const user = { username, phone, dept, salt, hash: c.hashPassword(password, salt), createdAt: Date.now() };
       const ok = await c.cmd('HSETNX', 'users', key, JSON.stringify(user));
-      if (!ok) return res.status(409).json({ error: 'Ese usuario ya existe. Elige otro o inicia sesión.' });
+      if (!ok) return res.status(409).json({ error: 'Ese nombre ya está registrado. Intenta iniciar sesión.' });
       const token = await c.createSession(key);
       return res.status(200).json({ token, user: publicUser(user) });
     }
@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
       const raw = key ? await c.cmd('HGET', 'users', key) : null;
       const user = raw ? JSON.parse(raw) : null;
       if (!user || c.hashPassword(body.password || '', user.salt) !== user.hash) {
-        return res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
+        return res.status(401).json({ error: 'Nombre o contraseña incorrectos.' });
       }
       const token = await c.createSession(key);
       return res.status(200).json({ token, user: publicUser(user) });

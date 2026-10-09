@@ -73,14 +73,14 @@
         </div>
 
         <div class="bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl p-3 mb-4">
-          💡 Te recomendamos usar el <strong>mismo valor</strong> para usuario y contraseña, así no se te olvida.
+          💡 Te recomendamos usar una contraseña fácil de recordar.
         </div>
 
         <p id="authError" class="hidden mb-3 text-xs text-red-700 font-bold bg-red-50 border border-red-200 p-2 rounded-lg text-center"></p>
 
         <form id="loginForm" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Usuario *</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre completo *</label>
             <input type="text" id="loginUser" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="username">
           </div>
           <div>
@@ -92,8 +92,8 @@
 
         <form id="registerForm" class="space-y-3 hidden">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Usuario *</label>
-            <input type="text" id="regUser" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="username">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre completo *</label>
+            <input type="text" id="regUser" placeholder="Ej. Juan Pérez" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-600" required autocomplete="username">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Contraseña *</label>
@@ -149,7 +149,7 @@
         </div>
         <div class="space-y-3 text-xs sm:text-sm text-slate-600">
           <div class="flex justify-between"><span>Turnos / día:</span> <strong class="text-slate-900">2 paseos exclusivos</strong></div>
-          <div class="flex justify-between items-center"><span>Correa y bolsitas 💩:</span> <strong class="text-slate-900">Puerta de emergencia</strong></div>
+          <div class="flex justify-between items-center"><span>Correa y bolsitas 💩:</span> <strong class="text-slate-900">Atrás de la puerta de ingreso</strong></div>
         </div>
       </div>
     </section>
@@ -838,7 +838,7 @@
         start = parseYYYYMMDD(booking.fridayDateStr); start.setHours(18, 0, 0, 0);
         end = parseYYYYMMDD(booking.mondayDateStr); end.setHours(8, 30, 0, 0);
         title = booking.title;
-        details = `Hospedaje de fin de semana con True a cargo de ${booking.user.name}. Kit completo en puerta de emergencia.`;
+        details = `Hospedaje de fin de semana con True a cargo de ${booking.user.name}. Kit completo atrás de la puerta de ingreso.`;
       } else {
         const d = parseYYYYMMDD(booking.dateStr);
         start = new Date(d); start.setHours(booking.startHour, booking.startMinute, 0, 0);
@@ -847,7 +847,7 @@
         details = `Turno asignado a ${booking.user.name}. Alarma programada a 20 minutos antes.`;
       }
       return {
-        outlookOffice: `https://outlook.office.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${encodeURIComponent(start.toISOString())}&enddt=${encodeURIComponent(end.toISOString())}&subject=${encodeURIComponent(title)}&body=${encodeURIComponent(details)}&location=${encodeURIComponent('Puerta de emergencia')}`
+        outlookOffice: `https://outlook.office.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${encodeURIComponent(start.toISOString())}&enddt=${encodeURIComponent(end.toISOString())}&subject=${encodeURIComponent(title)}&body=${encodeURIComponent(details)}&location=${encodeURIComponent('Atrás de la puerta de ingreso')}`
       };
     }
 
